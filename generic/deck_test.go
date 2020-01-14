@@ -60,6 +60,17 @@ func TestDeal(t *testing.T) {
     if !hand2[len(hand2)-1].Faceup {
         t.Errorf("last card in hand should be face up but was not.")
     }
+    deck.LastDealt = 5
+    hand3 := deck.Deal(5, 6)
+    cnt := 0
+    for i := 0; i < len(hand3); i++ {
+        if hand3[i].Faceup {
+            cnt++
+        }
+    }
+    if cnt < 5 {
+        t.Errorf("Expected 5 but was %d.", cnt)
+    }
 }
 
 func TestTurn(t *testing.T) {
