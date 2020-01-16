@@ -7,7 +7,7 @@ import (
         "os"
 )
 
-func TestIslegalmove(t *testing.T) {
+func TestisLegalMove(t *testing.T) {
 	card1 := generic.Card{
 		Rank:   "5",
 		Suit:   "S",
@@ -40,34 +40,34 @@ func TestIslegalmove(t *testing.T) {
 		Color:  "red",
 		Faceup: true,
 	}
-	if Islegalmove(card1, card2) {
+	if isLegalMove(card1, card2) {
 		t.Errorf("Both cards must be face up %+v %+v.", card1, card2)
 	}
 	card1.Faceup = true
-	if !Islegalmove(card1, card2) {
+	if !isLegalMove(card1, card2) {
 		t.Errorf("unknown error as cards match %+v, %+v.", card1, card2)
 	}
-	if Islegalmove(card2, card1) {
+	if isLegalMove(card2, card1) {
 		t.Errorf("First card rank value should be less than second %d, %d.", card2.Rvalue, card1.Rvalue)
 	}
-	if Islegalmove(card1, card3) {
+	if isLegalMove(card1, card3) {
 		t.Errorf("Must be different colors %s, %s.", card1.Color, card2.Color)
 	}
-	if Islegalmove(card1, card4) {
+	if isLegalMove(card1, card4) {
 		t.Errorf("Rank values must differ: %d, %d.", card1.Rvalue, card4.Rvalue)
 	}
         card1.Rvalue = 13
         card1.Faceup = false
         card2.Rvalue = 0
-        if Islegalmove(card1, card2) {
+        if isLegalMove(card1, card2) {
             t.Errorf("expected false as card1 is face down but got true.")
         }
         card1.Faceup = true
-        if !Islegalmove(card1, card2) {
+        if !isLegalMove(card1, card2) {
             t.Errorf("Expected true but got false.")
         }
         card1.Rvalue = 1
-        if !Islegalmove(card1, card2) {
+        if !isLegalMove(card1, card2) {
             t.Errorf("Expected true but got false.")
         }
 }
@@ -136,7 +136,7 @@ func TestMove(t *testing.T) {
     }
 }
 
-func TestMoveAces(t *testing.T) {
+func TestmoveAces(t *testing.T) {
     piles := make([]Pile, 7)
     piles2 := make([]Pile, 7)  // keep a copy of the original
     datafile, err := os.Open("cards.json")
@@ -148,12 +148,12 @@ func TestMoveAces(t *testing.T) {
     datafile.Close()
     aces := make([]Pile, 4)
     copy(piles2, piles)
-    if MoveAces(&piles[3], aces[:]) {
+    if moveAces(&piles[3], aces[:]) {
         t.Error("expected false but was true.")
     }
     piles[3].Cards[3].Rank = "A"
     piles[3].Cards[3].Rvalue = 1
-    if !MoveAces(&piles[3], aces[:]) {
+    if !moveAces(&piles[3], aces[:]) {
         t.Error("expected true but got false.")
     }
     if len(piles[3].Cards) != 3 {
@@ -162,7 +162,7 @@ func TestMoveAces(t *testing.T) {
     if len(aces[0].Cards) != 1 {
         t.Errorf("expected 1 but got %d.", len(aces[0].Cards))
     }
-    if !MoveAces(&piles[3], aces[:]) {
+    if !moveAces(&piles[3], aces[:]) {
         t.Error("expected true but got false.")
     }
     piles[3].Cards[1].Rank = "2"
@@ -170,12 +170,12 @@ func TestMoveAces(t *testing.T) {
     piles[3].Cards[1].Rvalue = 2
     piles[3].Cards[1].Svalue = 16
     piles[3].Cards[1].Color = "black"
-    if !MoveAces(&piles[3], aces[:]) {
+    if !moveAces(&piles[3], aces[:]) {
         t.Error("expected true but got false.")
     }
 }
 
-func TestMakeMoves(t *testing.T) {
+func TesttableauMoves(t *testing.T) {
     piles := make([]Pile, 7)
     piles2 := make([]Pile, 7)  // keep a copy of the original
     datafile, err := os.Open("cards.json")
@@ -187,11 +187,7 @@ func TestMakeMoves(t *testing.T) {
     datafile.Close()
     aces := make([]Pile, 4)
     copy(piles2, piles)
-    cnt := 0
-    cnt = MakeMoves(piles[:], aces[:])
-    if cnt != 3 {
-        t.Errorf("expected 3 but got %d.", cnt)
-    }
+    tableauMoves(piles[:], aces[:])
     if len(piles[0].Cards) != 2 {
         t.Errorf("expected 2 but got %d.", len(piles[0].Cards))
     }
@@ -201,13 +197,13 @@ func TestMakeMoves(t *testing.T) {
     copy(piles, piles2)
     piles[3].Cards[3].Rank = "7"
     piles[3].Cards[3].Rvalue = 7
-    cnt = MakeMoves(piles[:], aces[:])
+    tableauMoves(piles[:], aces[:])
     if len(piles[0].Cards) != 0 {
         t.Errorf("expected 0 but got %d.", len(piles[0].Cards))
     }
     piles[6].Cards[6].Rank = "K"
     piles[6].Cards[6].Rvalue = 13
-    cnt = MakeMoves(piles[:], aces[:])
+    tableauMoves(piles[:], aces[:])
     if len(piles[0].Cards) != 1 {
         t.Errorf("expected 1 but got %d.", len(piles[0].Cards))
     }

@@ -19,6 +19,19 @@ type Card struct {
 type Deck struct {
 	Cards     []Card
 	LastDealt int
+        AllDealt bool
+}
+
+// Create a new card with the iven criteria
+func NewCard(rank, suit, color string, rv, sv int, up bool) Card {
+    return Card{
+        Rank: rank,
+        Suit: suit,
+        Color: color,
+        Rvalue: rv,
+        Svalue: sv,
+        Faceup: up,
+    }
 }
 
 // NewDeck creates a deck of cards to be used
@@ -35,26 +48,20 @@ func NewDeck() (deck Deck) {
         colors := []string{"red", "red", "black", "black"}
 
 	// Loop over each type and suit appending to the deck
-	for i := 0; i < len(ranks); i++ {
-		for n := 0; n < len(suits); n++ {
-			card := Card{
-				Rank:   ranks[i],
-				Suit:   suits[n],
-                                Rvalue: rvalues[i],
-                                Svalue: svalues[n],
-                                Color: colors[n],
-				Faceup: false,
-			}
+	for i, v1 := range ranks {
+		for n, v2 := range suits {
+			card := NewCard(v1, v2, colors[n], rvalues[i], svalues[n], false)
 			deck.Cards = append(deck.Cards, card)
 		}
 	}
 	deck.LastDealt = 0
+        deck.AllDealt = false
 	return
 }
 
 // Shuffle the deck
 func (d *Deck) Shuffle() {
-	for i := 1; i < len(d.Cards); i++ {
+	for i := range d.Cards {
 		// Create a random int up to the number of cards
 		r := rand.Intn(i + 1)
 
@@ -73,6 +80,9 @@ func (d *Deck) Deal(n, nfaceup int) (hand []Card) {
 		hand = append(hand, card)
 	}
 	d.LastDealt = d.LastDealt + n
+        if d.LastDealt >= len(d.Cards) {
+            d.AllDealt = true
+        }
         if nfaceup > len(hand) {
             nfaceup = len(hand)
         }
