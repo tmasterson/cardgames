@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/tmasterson/cardgames/generic"
+        "os"
+        "log"
 )
 
 type Adder interface {
@@ -13,22 +15,27 @@ type Reducer interface {
     Reduce(n int)
 }
 
+type SetFirstFaceUper interface {
+    ChangeFirstFaceUp()
+}
+
 type Pile struct {
     Cards []generic.Card
     Firstfaceup int
+    ptype byte
 }
 
-var tableau = make([]Pile, 7)
-var aces = make([]Pile, 4)
-var waste Pile
-var deck = generic.NewDeck()
+var (
+    f, err = os.OpenFile("game.out", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+    logger = log.New(f, "", log.LstdFlags)
+)
 
 // Determine if a move is legal
 func isLegalMove(card1, card2 generic.Card) bool {
 	if card1.Rvalue == card2.Rvalue-1 && card1.Color != card2.Color && card1.Faceup && card2.Faceup {
 		return true
 	}
-        if (card1.Rvalue == 13 || card1.Rvalue == 1) && card2.Rvalue == 0 && card1.Faceup {
+        if card1.Rvalue == 13 && card2.Rvalue == 0 && card1.Faceup {
             return true
         }
 	return false
@@ -41,70 +48,81 @@ func (p *Pile) Add(c []generic.Card) {
 
 // Remove one or more cards from a pile
 func (p *Pile) Reduce(n int) {
-    for i := range p.Cards[n:] {
-        p.Cards[i] = generic.NewCard("", "", "", 0, 0, false)
-    }
     p.Cards = p.Cards[:n]
 }
 
-func doMove(pile1, pile2 *Pile, index int) {
-    pile2.Add(pile1.Cards[index:])
-    pile1.Reduce(index)
+func (p *Pile) ChangeFirstFaceUp() {
+    if len(p.Cards) > 0 {
+        if p.Firstfaceup > 0 {
+            p.Firstfaceup--
+        }
+        p.Cards[p.Firstfaceup].Turn()
+    } else {
+        p.Firstfaceup = 0
+    }
+}
+
+func doMove(from, to *Pile, index int) {
+    to.Add(from.Cards[index:])
+    from.Reduce(index)
+    from.ChangeFirstFaceUp()
 }
 
 // move 1 or more cards from pile1 to pile2 
 // Return true if the move was made otherwise return false
-func move(pile1, pile2 *Pile, index int) bool {
-    if len(pile1.Cards) == 0 { // Can not move empty pile
+func move(from, to *Pile, index int) bool {
+    if len(from.Cards) == 0 { // Can not move empty pile
         return false
     }
-    card1 := pile1.Cards[index]
+    card1 := from.Cards[index]
+    if index == 0 && card1.Rank == "K" {
+        return false
+    }
     // if pile2 is empty generate a dummy card for checking legal moves
     var card2 generic.Card
-    if len(pile2.Cards) == 0 {
-        card2 = generic.Card{
-            Rank: "",
-            Suit: "",
-            Rvalue: 0,
-            Svalue: 0,
-            Color: "",
-            Faceup: true,
-        }
+    if len(to.Cards) == 0 {
+        card2 = generic.NewCard("", "", "", 0, 0, false)
     } else {
-            card2 = pile2.Cards[len(pile2.Cards)-1]
+            card2 = to.Cards[len(to.Cards)-1]
         }
 	if isLegalMove(card1, card2) {
-            doMove(pile1, pile2, index)
+            doMove(from, to, index)
             return true
 	}
 	return false
 }
 
 func showpile(pile []generic.Card) {
-	for i := len(pile) - 1; i >= 0; i-- {
-		if pile[i].Faceup {
-			fmt.Printf("%s%s ", pile[i].Rank, pile[i].Suit)
-		}
-	}
-	fmt.Println()
+    str := ""
+    for i := range pile {
+        if pile[i].Faceup {
+            fmt.Printf("%s%s ", pile[i].Rank, pile[i].Suit)
+            str = str+" "+pile[i].Rank+pile[i].Suit
+        }
+    }
+    fmt.Println()
+    logger.Println(str)
 }
 
-func showTableau() {
-    for i := 0; i < 7; i++ {
+func showTableau(tableau []Pile) {
+    for i := range tableau {
         fmt.Printf("tableau %d: ", i)
+        logger.Printf("tableau %d: Firstfaceup: %d", i, tableau[i].Firstfaceup)
         showpile(tableau[i].Cards)
     }
 }
 
-func showAces() {
-    for i := 0; i < 4; i++ {
+func showAces(aces []Pile) {
+    for i := range aces {
         fmt.Printf("Aces %d: ", i)
+        logger.Printf("Aces %d: ", i)
         showpile(aces[i].Cards)
     }
 }
 
-func showWaste() {
+func showWaste(waste Pile) {
     fmt.Print("waste: ")
+    logger.Print("waste: ")
     showpile(waste.Cards)
 }
 
@@ -114,32 +132,24 @@ func moveAces(pile *Pile, aces []Pile) bool {
     if len(pile.Cards) > 0 {
         lenpile = len(pile.Cards)-1
     }
-    if pile.Cards[lenpile].Suit == "S" {
+    switch pile.Cards[lenpile].Suit {
+    case "S":
         index = 0
-    } else {
-        if pile.Cards[lenpile].Suit == "H" {
-            index = 1
-        } else {
-            if pile.Cards[lenpile].Suit == "D" {
-                index = 2
-            } else {
-                if pile.Cards[lenpile].Suit == "C" {
-                    index = 3
-                }
-            }
-        }
+    case "H":
+        index = 1
+    case "D":
+        index = 2
+    case "C":
+        index = 3
     }
     move := false
-    if pile.Cards[lenpile].Rvalue == 1 && len(aces[index].Cards) == 0 {
+    switch {
+    case pile.Cards[lenpile].Rvalue == 1 && len(aces[index].Cards) == 0:
         move = true
-    } else {
-        if len(aces[index].Cards) == 0 {
-            move = false
-        } else {
-            if pile.Cards[lenpile].Rvalue-1 == aces[index].Cards[len(aces[index].Cards)-1].Rvalue {
-                move = true
-            }
-        }
+    case len(aces[index].Cards) == 0:
+        move = false
+    case pile.Cards[lenpile].Rvalue-1 == aces[index].Cards[len(aces[index].Cards)-1].Rvalue:
+        move = true
     }
     if move {
         doMove(pile, &aces[index], lenpile)
@@ -151,66 +161,34 @@ func tableauMoves(piles, aces []Pile) {
     done := false
     for !done {
         cnt := 0
-        for i := 0; i < len(piles); i++ {
-            for j := 0; j < len(piles); j++ {
+        for i := range piles {
+            for j := range piles {
                 if j == i || len(piles[j].Cards) == 0 {
                     continue
                 }
                 if moveAces(&piles[j], aces[:]) {
                     cnt++
-                    if len(piles[j].Cards) > 0 {
-                        piles[j].Firstfaceup--
-                        piles[j].Cards[piles[j].Firstfaceup].Turn()
-                    }
                 }
                 if move(&piles[j], &piles[i], piles[j].Firstfaceup) {
                     cnt++
-                    if piles[j].Firstfaceup > 0 {
-                        piles[j].Firstfaceup--
-                    }
-                    if len(piles[j].Cards) > 0 {
-                        piles[j].Cards[piles[j].Firstfaceup].Turn()
-                    }
                 }
             }
         }
         fmt.Printf("number of moves was %d\n", cnt)
-        showTableau()
-        showWaste()
-        showAces()
+        logger.Printf("number of moves was %d\n", cnt)
+        showTableau(piles)
+        showAces(aces)
         if cnt == 0 {
             done = true
         }
     }
 }
 
-func initTableau() {
-    for i := 0; i < len(deck.Cards); i++ {
-        if deck.Cards[i].Rvalue == 14 {  // change aces to 1 instead of 14
-            deck.Cards[i].Rvalue = 1
-        }
-    }
-    for i := 1; i < 8; i++ {
-        tableau[i-1].Cards = deck.Deal(i, 1)
-        tableau[i-1].Firstfaceup = len(tableau[i-1].Cards)-1
-    }
-}
-
-func initWaste() {
-    waste.Cards = deck.Deal(3,1)
-}
-
-func initgame() {
-    deck.Shuffle()
-    initTableau()
-    initWaste()
-}
-
-func moveWaste(tableau []Pile, waste *Pile ) {
+func moveWaste(tableau, aces []Pile, waste *Pile, deck generic.Deck) {
     done := false
     for !done {
-        for i := 0; i < 7 && len(waste.Cards) > 0; i++ {
-            if move(waste, &tableau[i], len(waste.Cards)-1) {
+        for i := 0; i < len(tableau) && len(waste.Cards) > 0; i++ {
+            if move(waste, &tableau[i], len(waste.Cards)-1) || moveAces(waste, aces[:]) {
                 done = true
                 if len(waste.Cards) > 0 {
                     waste.Cards[len(waste.Cards)-1].Turn()
@@ -226,30 +204,32 @@ func moveWaste(tableau []Pile, waste *Pile ) {
                 waste.Cards = deck.Deal(3,1)
             }
         }
+        logger.Printf("Waste: %s%s", waste.Cards[len(waste.Cards)-1].Rank, waste.Cards[len(waste.Cards)-1].Suit)
     }
 }
 
-func playgame() {
+func playgame(tableau, aces []Pile, waste Pile, deck generic.Deck) {
     passes := 0
     cnt := 0
     canplay := true
     for canplay {
-        showTableau()
-        showWaste()
-        showAces()
+        showTableau(tableau)
+        showWaste(waste)
+        showAces(aces)
         tableauMoves(tableau[:], aces[:])
-        moveWaste(tableau[:], &waste)
+        moveWaste(tableau[:], aces[:], &waste, deck)
+        logger.Printf("passes: %d\n", passes)
         if deck.AllDealt {
             passes++
             if len(waste.Cards) > 0 {
                 waste.Cards[len(waste.Cards)-1].Turn()
             }
             copy(deck.Cards, waste.Cards)
-            waste.Cards = waste.Cards[:0]
+            waste.Reduce(0)
             waste.Cards = deck.Deal(3, 1)
         }
         cnt = 0
-        for i := 0; i < 4; i++ {
+        for i := range aces {
             cnt += len(aces[i].Cards)
         }
         if cnt == 52 {
@@ -264,6 +244,30 @@ func playgame() {
 }
 
 func main() {
-    initgame()
-    playgame()
+    if err != nil {
+        log.Fatal("Error opening error log.\n")
+    }
+    defer f.Close()
+    tableau := make([]Pile, 7)
+    aces := make([]Pile, 4)
+    var waste Pile
+    deck := generic.NewDeck()
+    deck.Shuffle()
+    // Make aces low card instead of high card
+    for i := range deck.Cards {
+        if deck.Cards[i].Rvalue == 14 {  // change aces to 1 instead of 14
+            deck.Cards[i].Rvalue = 1
+        }
+    }
+    waste.Cards = deck.Deal(3,1)
+    waste.ptype = 'W'
+    for i := range tableau {
+        tableau[i].Cards = deck.Deal(i+1, 1)
+        tableau[i].Firstfaceup = len(tableau[i].Cards)-1
+        tableau[i].ptype = 'T'
+    }
+    for i := range aces {
+        aces[i].ptype = 'A'
+    }
+    playgame(tableau, aces, waste, deck)
 }

@@ -7,7 +7,7 @@ import (
         "os"
 )
 
-func TestisLegalMove(t *testing.T) {
+func TestIsLegalMove(t *testing.T) {
 	card1 := generic.Card{
 		Rank:   "5",
 		Suit:   "S",
@@ -66,10 +66,64 @@ func TestisLegalMove(t *testing.T) {
         if !isLegalMove(card1, card2) {
             t.Errorf("Expected true but got false.")
         }
-        card1.Rvalue = 1
-        if !isLegalMove(card1, card2) {
-            t.Errorf("Expected true but got false.")
-        }
+}
+
+func TestAdd(t *testing.T) {
+    var p1 Pile
+    c1 := make([]generic.Card, 3)
+    c2 := make([]generic.Card, 2)
+    c1[0] = generic.NewCard("K", "S", "black", 13, 16, false)
+    c1[1] = generic.NewCard("Q", "S", "black", 12, 16, false)
+    c1[2] = generic.NewCard("K", "D", "Red", 13, 8, true)
+    p1.Add(c1)
+    if len(p1.Cards) != 3 {
+        t.Errorf("Expected 3 but was %d.", len(p1.Cards))
+    }
+    if p1.Cards[0] != c1[0] {
+        t.Errorf("Expected %+v, but got %+v.", c1[0], p1.Cards[0])
+    }
+    if p1.Cards[1] != c1[1] {
+        t.Errorf("Expected %+v, but got %+v.", c1[1], p1.Cards[1])
+    }
+    if p1.Cards[2] != c1[2] {
+        t.Errorf("Expected %+v, but got %+v.", c1[2], p1.Cards[2])
+    }
+    c2[0] = generic.NewCard("Q", "C", "black", 12, 2, true)
+    c2[1] = generic.NewCard("J", "H", "red", 11, 8, true)
+    p1.Add(c2)
+    if len(p1.Cards) != 5 {
+        t.Errorf("Expected 5 but was %d.", len(p1.Cards))
+    }
+    if p1.Cards[3] != c2[0] {
+        t.Errorf("Expected %+v, but got %+v.", c2[0], p1.Cards[3])
+    }
+    if p1.Cards[4] != c2[1] {
+        t.Errorf("Expected %+v, but got %+v.", c2[1], p1.Cards[4])
+    }
+}
+
+func TestReduce(t *testing.T) {
+    var p1 Pile
+    c1 := make([]generic.Card, 5)
+    c1[0] = generic.NewCard("K", "S", "black", 13, 16, false)
+    c1[1] = generic.NewCard("Q", "S", "black", 12, 16, false)
+    c1[2] = generic.NewCard("K", "D", "Red", 13, 8, true)
+    c1[3] = generic.NewCard("Q", "C", "black", 12, 2, true)
+    c1[4] = generic.NewCard("J", "H", "red", 11, 8, true)
+    p1.Cards = c1
+    p1.Reduce(3)
+    if len(p1.Cards) != 3 {
+        t.Errorf("Expected 3 but was %d.", len(p1.Cards))
+    }
+    if p1.Cards[0] != c1[0] {
+        t.Errorf("Expected %+v, but got %+v.", c1[0], p1.Cards[0])
+    }
+    if p1.Cards[1] != c1[1] {
+        t.Errorf("Expected %+v, but got %+v.", c1[1], p1.Cards[1])
+    }
+    if p1.Cards[2] != c1[2] {
+        t.Errorf("Expected %+v, but got %+v.", c1[2], p1.Cards[2])
+    }
 }
 
 func TestMove(t *testing.T) {
@@ -136,7 +190,7 @@ func TestMove(t *testing.T) {
     }
 }
 
-func TestmoveAces(t *testing.T) {
+func TestMoveAces(t *testing.T) {
     piles := make([]Pile, 7)
     piles2 := make([]Pile, 7)  // keep a copy of the original
     datafile, err := os.Open("cards.json")
@@ -175,7 +229,7 @@ func TestmoveAces(t *testing.T) {
     }
 }
 
-func TesttableauMoves(t *testing.T) {
+func TestTableauMoves(t *testing.T) {
     piles := make([]Pile, 7)
     piles2 := make([]Pile, 7)  // keep a copy of the original
     datafile, err := os.Open("cards.json")
