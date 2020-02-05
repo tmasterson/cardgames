@@ -52,13 +52,16 @@ func TestDeal(t *testing.T) {
     if dup {
         t.Errorf("There should be no duplicates in a hand.")
     }
-    deck.LastDealt = 49
+    deck.LastDealt = 51
     hand2 := deck.Deal(5, 1)
     if len(hand2) == 5 {
         t.Errorf("There should be less than 5 cards in the hand.")
     }
     if !hand2[len(hand2)-1].Faceup {
         t.Errorf("last card in hand should be face up but was not.")
+    }
+    if !deck.AllDealt {
+        t.Error("expected deck.AllDealt to be true but was false.")
     }
     deck.LastDealt = 5
     hand3 := deck.Deal(5, 6)

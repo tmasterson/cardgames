@@ -5,6 +5,14 @@ import (
 	"time"
 )
 
+type Dealer interface {
+    Deal(n, nfaceup int) []Card
+}
+
+type Shuffler interface {
+    Shuffle()
+}
+
 // Card holds the card suits and types in the deck
 type Card struct {
 	Rank   string

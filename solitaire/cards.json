@@ -2,20 +2,20 @@
     {"Cards":
         [
             {"Rank":"6","Suit":"H","Rvalue":6,"Svalue":8,"Color":"red","Faceup":true}
-        ],"Firstfaceup":0
+        ],"Firstfaceup":0, "Ptype":84
     },
     {"Cards":
         [
             {"Rank":"7","Suit":"H","Rvalue":7,"Svalue":8,"Color":"red","Faceup":false},
             {"Rank":"J","Suit":"S","Rvalue":11,"Svalue":16,"Color":"black","Faceup":true}
-        ],"Firstfaceup":1
+        ],"Firstfaceup":1, "Ptype":84
     },
     {"Cards":
         [
             {"Rank":"2","Suit":"H","Rvalue":2,"Svalue":8,"Color":"red","Faceup":false},
             {"Rank":"3","Suit":"H","Rvalue":3,"Svalue":8,"Color":"red","Faceup":false},
             {"Rank":"5","Suit":"C","Rvalue":5,"Svalue":2,"Color":"black","Faceup":true}
-        ],"Firstfaceup":2
+        ],"Firstfaceup":2, "Ptype":84
     },
     {"Cards":
         [
@@ -23,7 +23,7 @@
             {"Rank":"9","Suit":"H","Rvalue":9,"Svalue":8,"Color":"red","Faceup":false},
             {"Rank":"A","Suit":"C","Rvalue":1,"Svalue":2,"Color":"black","Faceup":false},
             {"Rank":"8","Suit":"S","Rvalue":8,"Svalue":16,"Color":"black","Faceup":true}
-        ],"Firstfaceup":3
+        ],"Firstfaceup":3, "Ptype":84
     },
     {"Cards":
         [
@@ -32,7 +32,7 @@
             {"Rank":"2","Suit":"D","Rvalue":2,"Svalue":4,"Color":"red","Faceup":false},
             {"Rank":"T","Suit":"S","Rvalue":10,"Svalue":16,"Color":"black","Faceup":false},
             {"Rank":"8","Suit":"D","Rvalue":8,"Svalue":4,"Color":"red","Faceup":true}
-        ],"Firstfaceup":4
+        ],"Firstfaceup":4, "Ptype":84
     },
     {"Cards":
         [
@@ -42,7 +42,7 @@
             {"Rank":"Q","Suit":"S","Rvalue":12,"Svalue":16,"Color":"black","Faceup":false},
             {"Rank":"T","Suit":"C","Rvalue":10,"Svalue":2,"Color":"black","Faceup":false},
             {"Rank":"9","Suit":"D","Rvalue":9,"Svalue":4,"Color":"red","Faceup":true}
-        ],"Firstfaceup":5
+        ],"Firstfaceup":5, "Ptype":84
     },
     {"Cards":
         [
@@ -53,6 +53,6 @@
             {"Rank":"6","Suit":"S","Rvalue":6,"Svalue":16,"Color":"black","Faceup":false},
             {"Rank":"8","Suit":"C","Rvalue":8,"Svalue":2,"Color":"black","Faceup":false},
             {"Rank":"3","Suit":"S","Rvalue":3,"Svalue":16,"Color":"black","Faceup":true}
-        ],"Firstfaceup":6
+        ],"Firstfaceup":6, "Ptype":84
     }
 ]
