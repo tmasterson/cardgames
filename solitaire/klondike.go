@@ -1,10 +1,18 @@
+//  This has the computer play a game of Klondike solitaire.
+// It creates a gile named game.out which all moves are logged to as well
+// as printing mthe major moves to the console.  The game.out file is opened in append mode
+// so you will need to clean it out on occasion, or more likely just delete it.
+//
+// Todo:  Make Pile a type with a slice of hands and a type.  Move hands to the generic package along with the show function.
+
 package main
 
 import (
 	"fmt"
-	"github.com/tmasterson/cardgames/generic"
 	"log"
 	"os"
+
+	"github.com/tmasterson/cardgames/generic"
 )
 
 // Adder is an iterface primarily designed to allow for isolation while testing
