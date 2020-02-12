@@ -7,22 +7,28 @@ import (
 	"os"
 )
 
+// Adder is an iterface primarily designed to allow for isolation while testing
 type Adder interface {
 	Add(c []generic.Card)
 }
 
+// Reducer is an interface desgnied primarl=ily for isolation during testing
 type Reducer interface {
 	Reduce(n int)
 }
 
+// SetFirstFaceUper  Interface to allow for testing.  See method for full docs.
 type SetFirstFaceUper interface {
 	ChangeFirstFaceUp()
 }
 
+// CheckMover  An interfae for testing moves.
 type CheckMover interface {
 	CheckMove(to *Pile, index int) bool
 }
 
+// Pile is the base for all card stacks.
+// Could possibly be made into a generic hand and moved to the generic package
 type Pile struct {
 	Cards       []generic.Card
 	Firstfaceup int
@@ -34,16 +40,17 @@ var (
 	logger = log.New(f, "", log.LstdFlags)
 )
 
-// Add a card or cards to a pile
+// Add adds a card or cards to a pile
 func (p *Pile) Add(c []generic.Card) {
 	p.Cards = append(p.Cards, c...)
 }
 
-// Remove one or more cards from a pile
+// Reduce Removes one or more cards from a pile.
 func (p *Pile) Reduce(n int) {
 	p.Cards = p.Cards[:n]
 }
 
+// ChangeFirstFaceUp  Sets the first faceup card in a Pile.
 func (p *Pile) ChangeFirstFaceUp() {
 	if len(p.Cards) > 0 {
 		if p.Firstfaceup > 0 {
@@ -55,22 +62,25 @@ func (p *Pile) ChangeFirstFaceUp() {
 	}
 }
 
-func (from *Pile) DoMove(to *Pile, index int) {
-	to.Add(from.Cards[index:])
-	from.Reduce(index)
-	from.ChangeFirstFaceUp()
+// DoMove  Does the actual moving of cards from one Pile to another.
+func (p *Pile) DoMove(to *Pile, index int) {
+	to.Add(p.Cards[index:])
+	p.Reduce(index)
+	p.ChangeFirstFaceUp()
 }
 
-// move 1 or more cards from pile1 to pile2
-// Return true if the move can be made
-func (from *Pile) CheckMove(to *Pile, index int) bool {
-	if len(from.Cards) == 0 { // Can not move empty pile
+// CheckMove  Checks to make sure that a move is valid
+// to is the Pile you are moving cards onto.
+// index is the position of the first card in the stack to be moved.
+// Returns true if the move is valid otherwise false.
+func (p *Pile) CheckMove(to *Pile, index int) bool {
+	if len(p.Cards) == 0 { // Can not move empty pile
 		return false
 	}
-	if from.Ptype == 'A' { // can't move form aces
+	if p.Ptype == 'A' { // can't move form aces
 		return false
 	}
-	card1 := from.Cards[index]
+	card1 := p.Cards[index]
 	if index == 0 && card1.Rank == "K" && card1.Faceup { // don't move a king if is the bottom card on a pile
 		return false
 	}
