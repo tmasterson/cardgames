@@ -1,7 +1,5 @@
-THis is primarily an excercise in doing things with go.
+This is a selection of card games written in go for playing at the console.
 
-At this point it allows the computer to play a game of klondike soitaire as I have not yet put any UI components in.
+It uses tcell for it's screen interface.
 
-It still has bugs in that in certain cases it will infinitely loop.  Eventually I may add an ncurses ui component that allows a person to play.
-
-My next step is to refactor it so tests can be better written and allow me to find where and why the infinite loops occur.
+Currently the only game available is klondike solitaire which can be played by a user or by the computer.
