@@ -6,6 +6,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -57,9 +58,12 @@ func putString(s tcell.Screen, x, y int, style tcell.Style, str string) {
 // style: The style for the box
 //
 // If this were to be made more generic it should be set so that you can do it without borders.
-func makeBox(s tcell.Screen, title string, leftX, topY, rightX, botY int, style tcell.Style) box {
+func makeBox(s tcell.Screen, title string, leftX, topY, rightX, botY int, style tcell.Style) (box, error) {
 	center := (rightX - leftX) / 2
 	var b box
+	if len(title) > rightX-leftX-2 {
+		return b, errors.New(fmt.Sprintf("title length %d nusr not exceed right-left-2 %d", len(title), rightX-leftX-2))
+	}
 	b.title = title
 	b.leftX = leftX
 	b.topY = topY
@@ -80,24 +84,52 @@ func makeBox(s tcell.Screen, title string, leftX, topY, rightX, botY int, style 
 	s.SetContent(b.leftX, b.botY, tcell.RuneLLCorner, nil, style)
 	s.SetContent(b.rightX, b.topY, tcell.RuneURCorner, nil, style)
 	s.SetContent(b.rightX, b.botY, tcell.RuneLRCorner, nil, style)
-	putString(s, b.leftX+center-len(title)/2, b.topY, style, title)
-	return b
+	titlepos := b.leftX + center - len(title)/2
+	if titlepos == b.leftX {
+		titlepos++
+	}
+	putString(s, titlepos, b.topY, style, title)
+	return b, nil
 }
 
 // DrawScreen draws the screen putting all the boxes in place
 // s: The screen variable
 // style: The style for the screen
-func drawScreen(s tcell.Screen, style tcell.Style) {
-	w, _ := s.Size()
+//
+// Returns: Returns an error if one occurs otherwise nil
+//
+func drawScreen(s tcell.Screen, style tcell.Style) error {
+	w, h := s.Size()
+	if w < 80 || h < 25 {
+		return errors.New("Screen size must be at least 80 by 25")
+	}
 	center := w / 2
 	title := "Klondike"
 	putString(s, center-len(title)/2, 0, style, title)
-	wasteArea = makeBox(s, "Waste", 0, 2, 10, 4, style)
-	ace1 = makeBox(s, "Ace", wasteArea.rightX+2, wasteArea.topY, wasteArea.rightX+8, wasteArea.topY+2, style)
-	ace2 = makeBox(s, "Ace", ace1.rightX+1, wasteArea.topY, ace1.rightX+7, wasteArea.topY+2, style)
-	ace3 = makeBox(s, "Ace", ace2.rightX+1, wasteArea.topY, ace2.rightX+7, wasteArea.topY+2, style)
-	ace4 = makeBox(s, "Ace", ace3.rightX+1, wasteArea.topY, ace3.rightX+7, wasteArea.topY+2, style)
-	playArea = makeBox(s, "Tableau", 0, ace1.botY+2, 23, ace2.botY+16, style)
+	wasteArea, err = makeBox(s, "Waste", 0, 2, 10, 4, style)
+	if err != nil {
+		return err
+	}
+	ace1, err = makeBox(s, "Ace", wasteArea.rightX+2, wasteArea.topY, wasteArea.rightX+8, wasteArea.topY+2, style)
+	if err != nil {
+		return err
+	}
+	ace2, err = makeBox(s, "Ace", ace1.rightX+1, wasteArea.topY, ace1.rightX+7, wasteArea.topY+2, style)
+	if err != nil {
+		return err
+	}
+	ace3, err = makeBox(s, "Ace", ace2.rightX+1, wasteArea.topY, ace2.rightX+7, wasteArea.topY+2, style)
+	if err != nil {
+		return err
+	}
+	ace4, err = makeBox(s, "Ace", ace3.rightX+1, wasteArea.topY, ace3.rightX+7, wasteArea.topY+2, style)
+	if err != nil {
+		return err
+	}
+	playArea, err = makeBox(s, "Tableau", 0, ace1.botY+2, 23, ace2.botY+16, style)
+	if err != nil {
+		return err
+	}
 	x := playArea.rightX + 5
 	y := playArea.topY
 	putString(s, (w-x)/2-3, y, style, "Moves:")
@@ -112,6 +144,7 @@ func drawScreen(s tcell.Screen, style tcell.Style) {
 	y++
 	putString(s, x, y, style, "1a will move from stack 1 to an ace stack.")
 	s.Show()
+	return nil
 }
 
 // ShowStack prints the face up cards in each stack
@@ -220,11 +253,61 @@ func calcMove(stacks []solitaire.Pile, deck *generic.Deck, pass int) (int, int, 
 	return -1, -1, pass
 }
 
+// processKey handles the processing of key strokes
+//
+// r:  The rune (keypress) we are to process.
+// stacks:  The card stacks.  Passed primarily to handle dealing to the waste stack
+// deck:  The deck of cards.  Passed to handle dealing to the waste pile.
+// pass:  Number of passes so far reset by the deal to wast function.
+// movefrom:  The stack to move cards from on initial call it is -1 and is passed again to set the move to stack.
+//
+// returns:  The number of the stack tto move cards from,
+//           The number of the stack to move cards to,
+//           the number of passes made through the deck.
+//
+func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movefrom int) (int, int, int) {
+	switch r {
+	case 'Q':
+		return -1, -1, 3
+	case 'D':
+		return -1, -1, dealToWaste(stacks[:], deck, pass)
+	case '1', '2', '3', '4', '5', '6', '7':
+		logger.Printf("in tableau")
+		if movefrom == -1 {
+			return int(r-'0') - 1, -1, pass
+		} else {
+			return movefrom, int(r-'0') - 1, pass
+		}
+	case 'W':
+		logger.Printf("in waste")
+		return 7, -1, pass
+	case 'A':
+		logger.Printf("in aces")
+		if movefrom != -1 {
+			index := 0
+			if len(stacks[movefrom].Cards) != 0 {
+				index = len(stacks[movefrom].Cards) - 1
+			}
+			switch stacks[movefrom].Cards[index].Suit {
+			case "S":
+				return movefrom, 8, pass
+			case "H":
+				return movefrom, 9, pass
+			case "D":
+				return movefrom, 10, pass
+			case "C":
+				return movefrom, 11, pass
+			}
+		}
+	}
+	return -1, -1, pass
+}
+
 // PlayGame if the main function that handles all aspects of the game.
 //
 // s: Screnn variable.
 // style: The style for the screen.
-func playGame(s tcell.Screen, style tcell.Style) {
+func playGame(s tcell.Screen, style tcell.Style) int {
 	stacks := make([]solitaire.Pile, 12)
 	deck := generic.NewDeck()
 	deck.Shuffle()
@@ -262,7 +345,7 @@ func playGame(s tcell.Screen, style tcell.Style) {
 			case tcell.KeyRune:
 				switch unicode.ToUpper(ev.Rune()) {
 				case 'Q':
-					return
+					return 3
 				case 'C':
 					ch = 'C'
 				case 'U':
@@ -286,50 +369,10 @@ func playGame(s tcell.Screen, style tcell.Style) {
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
 				switch ev.Key() {
-				case tcell.KeyEscape:
-					return
 				case tcell.KeyCtrlL:
 					s.Sync()
 				case tcell.KeyRune:
-					switch unicode.ToUpper(ev.Rune()) {
-					case 'Q':
-						return
-					case 'D':
-						pass = dealToWaste(stacks[:], &deck, pass)
-					case '1', '2', '3', '4', '5', '6', '7':
-						logger.Printf("in tableau")
-						if movefrom == -1 {
-							movefrom = int(ev.Rune()-'0') - 1
-							moveto = -1
-						} else {
-							if moveto == -1 {
-								moveto = int(ev.Rune()-'0') - 1
-							}
-						}
-					case 'W':
-						logger.Printf("in waste")
-						movefrom = 7
-					case 'A':
-						logger.Printf("in aces")
-						if movefrom != -1 {
-							var index int
-							if len(stacks[movefrom].Cards) == 0 {
-								index = 0
-							} else {
-								index = len(stacks[movefrom].Cards) - 1
-							}
-							switch stacks[movefrom].Cards[index].Suit {
-							case "S":
-								moveto = 8
-							case "H":
-								moveto = 9
-							case "D":
-								moveto = 10
-							case "C":
-								moveto = 11
-							}
-						}
-					}
+					movefrom, moveto, pass = processKey(unicode.ToUpper(ev.Rune()), stacks[:], &deck, pass, movefrom)
 				}
 			}
 		case 'C':
@@ -353,7 +396,15 @@ func playGame(s tcell.Screen, style tcell.Style) {
 			movefrom = -1
 			moveto = -1
 		}
+		total := 0
+		for i := 8; i < 11; i++ { // total the number of cards in aces
+			total += len(stacks[i].Cards)
+		}
+		if total == 52 { // if all cards are in aces stacks we are done
+			return -1
+		}
 	}
+	return pass
 }
 
 func main() {
@@ -376,7 +427,16 @@ func main() {
 		Background(tcell.ColorWhite))
 	s.Clear()
 	s.HideCursor()
-	defer s.Fini()
-	drawScreen(s, tcell.StyleDefault)
-	playGame(s, tcell.StyleDefault)
+	if err := drawScreen(s, tcell.StyleDefault); err != nil {
+		s.Fini()
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	st := playGame(s, tcell.StyleDefault)
+	s.Fini()
+	if st == -1 {
+		fmt.Println("Congratulations you won!")
+	} else {
+		fmt.Println("You either quit or lost. Better luck next time.")
+	}
 }
