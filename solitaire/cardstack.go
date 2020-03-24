@@ -84,7 +84,7 @@ func (p *Pile) CheckMove(to *Pile, index int) bool {
 		return false
 	}
 	card1 := p.Cards[index]
-	if index == 0 && card1.Rank == "K" && card1.Faceup { // don't move a king if is the bottom card on a pile
+	if index == 0 && card1.Rank == "K" && card1.Faceup && to.Ptype != 'A' { // don't move a king if is the bottom card on a pile unless moving it to an ace pile
 		return false
 	}
 	// if to is empty generate a dummy card for checking legal moves

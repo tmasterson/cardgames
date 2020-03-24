@@ -99,7 +99,7 @@ func TestChangeFirstFaceUp(t *testing.T) {
 func TestCheckMove(t *testing.T) {
 	var p1, p2 Pile
 	if p1.CheckMove(&p2, 0) {
-		t.Errorf("expected flase but was true")
+		t.Errorf("expected false but was true")
 	}
 	p1.Cards = append(p1.Cards, generic.NewCard("K", "S", "black", 13, 16, false))
 	p1.Cards = append(p1.Cards, generic.NewCard("j", "S", "black", 11, 16, true))
@@ -113,6 +113,19 @@ func TestCheckMove(t *testing.T) {
 	if p1.CheckMove(&p2, 0) {
 		t.Errorf("Can not move a king at the bottom of a pile")
 	}
+    p1.Cards = p1.Cards[:0]
+    p2.Cards = p2.Cards[:0]
+	p1.Cards = append(p1.Cards, generic.NewCard("K", "S", "black", 13, 16, true))
+	p2.Cards = append(p2.Cards, generic.NewCard("Q", "S", "black", 12, 16, true))
+	if !p1.CheckMove(&p2, 0) {
+		t.Errorf("Expected true moving %v %c, to %v %c", p1.Cards, p1.Ptype, p2.Cards, p2.Ptype)
+	}
+    p1.Cards = p1.Cards[:0]
+    p2.Cards = p2.Cards[:0]
+	p1.Cards = append(p1.Cards, generic.NewCard("K", "S", "black", 13, 16, true))
+	p1.Cards = append(p1.Cards, generic.NewCard("j", "S", "black", 11, 16, true))
+	p2.Cards = append(p2.Cards, generic.NewCard("t", "H", "red", 10, 8, true))
+	p1.Ptype = 'T'
 	p2.Ptype = 'T'
 	if !p2.CheckMove(&p1, 0) {
 		t.Errorf("Should have gotten true for move of %+v to %+v", p2.Cards[0], p1.Cards[len(p1.Cards)-1])
