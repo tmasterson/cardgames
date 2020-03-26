@@ -397,7 +397,7 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 			moveto = -1
 		}
 		total := 0
-		for i := 8; i < 11; i++ { // total the number of cards in aces
+		for i := 8; i < 12; i++ { // total the number of cards in aces
 			total += len(stacks[i].Cards)
 		}
 		if total == 52 { // if all cards are in aces stacks we are done
