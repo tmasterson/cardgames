@@ -102,109 +102,80 @@ func TestDealToWaste(t *testing.T) {
 	if len(stacks[7].Cards) != 6 {
 		t.Errorf("Should have 6 cards on stack but have %d", len(stacks[7].Cards))
 	}
-    if pass != 0 {
-        t.Errorf("Pass should be 0 but was %d", pass)
-    }
-    deck.AllDealt = true
+	if pass != 0 {
+		t.Errorf("Pass should be 0 but was %d", pass)
+	}
+	deck.AllDealt = true
 	pass = dealToWaste(stacks[:], &deck, 0)
 	if len(stacks[7].Cards) != 3 {
 		t.Errorf("Should have 3 cards on stack but have %d", len(stacks[7].Cards))
 	}
-    if pass != 1 {
-        t.Errorf("Pass should be 1 but was %d", pass)
-    }
-    if len(deck.Cards) != 6 {
-        t.Errorf("deck should have 6 cards left but has %d", len(deck.Cards))
-    }
-}
-
-func TestCalcMove(t *testing.T) {
-    stacks := make([]solitaire.Pile, 12)
-    deck := generic.NewDeck()
-    stacks[0].Cards = append(stacks[0].Cards, generic.NewCard("Q", "S", "black", 12, 16, true))
-    stacks[0].Ptype = 'T'
-    stacks[1].Cards = append(stacks[1].Cards, generic.NewCard("4", "S", "black", 4, 16, true))
-    stacks[1].Ptype = 'T'
-    stacks[2].Cards = append(stacks[2].Cards, generic.NewCard("T", "S", "black", 10, 16, true))
-    stacks[2].Ptype = 'T'
-    stacks[3].Cards = append(stacks[3].Cards, generic.NewCard("8", "S", "black", 8, 16, true))
-    stacks[3].Ptype = 'T'
-    stacks[4].Cards = append(stacks[4].Cards, generic.NewCard("9", "S", "black", 9, 16, true))
-    stacks[4].Ptype = 'T'
-    stacks[5].Cards = append(stacks[5].Cards, generic.NewCard("7", "S", "black", 7, 16, true))
-    stacks[5].Ptype = 'T'
-    stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
-    stacks[6].Ptype = 'T'
-    movefrom, moveto, pass := calcMove(stacks[:], &deck, 0)
-    if movefrom != 6 || moveto != 1 || pass != 0 {
-        t.Errorf("Expected 6, 1, 0 but got %d, %d, %d", movefrom, moveto, pass)
-    }
-    stacks[6].Cards[0] = generic.NewCard("3", "S", "black", 3, 16, true)
-    deck.AllDealt = true
-    movefrom, moveto, pass = calcMove(stacks[:], &deck, 2)
-    if movefrom != -1 || moveto != -1 || pass != 3 {
-        t.Errorf("Expected -1, -1, 3 but got %d, %d, %d", movefrom, moveto, pass)
-    }
+	if pass != 1 {
+		t.Errorf("Pass should be 1 but was %d", pass)
+	}
+	if len(deck.Cards) != 6 {
+		t.Errorf("deck should have 6 cards left but has %d", len(deck.Cards))
+	}
 }
 
 func TestProcessKey(t *testing.T) {
-    stacks := make([]solitaire.Pile, 12)
-    deck := generic.NewDeck()
-    stacks[0].Cards = append(stacks[0].Cards, generic.NewCard("Q", "S", "black", 12, 16, true))
-    stacks[0].Ptype = 'T'
-    stacks[1].Cards = append(stacks[1].Cards, generic.NewCard("4", "S", "black", 4, 16, true))
-    stacks[1].Ptype = 'T'
-    stacks[2].Cards = append(stacks[2].Cards, generic.NewCard("T", "S", "black", 10, 16, true))
-    stacks[2].Ptype = 'T'
-    stacks[3].Cards = append(stacks[3].Cards, generic.NewCard("8", "S", "black", 8, 16, true))
-    stacks[3].Ptype = 'T'
-    stacks[4].Cards = append(stacks[4].Cards, generic.NewCard("9", "S", "black", 9, 16, true))
-    stacks[4].Ptype = 'T'
-    stacks[5].Cards = append(stacks[5].Cards, generic.NewCard("7", "S", "black", 7, 16, true))
-    stacks[5].Ptype = 'T'
-    stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
-    stacks[6].Ptype = 'T'
-    mf, mt, pass := processKey('F', stacks[:], &deck, 0, -1)
-    if mt != -1 || mf != -1 || pass != 0 {
-        t.Errorf("Expected -1, -1, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('Q', stacks[:], &deck, 0, -1)
-    if mt != -1 || mf != -1 || pass != 3 {
-        t.Errorf("Expected -1, -1, 3 but was %d, %d, %d", mt, mf, pass)
-    }
-    deck.AllDealt = true
-    mf, mt, pass = processKey('D', stacks[:], &deck, 0, -1)
-    if mt != -1 || mf != -1 || pass != 1 {
-        t.Errorf("Expected -1, -1, 1 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('2', stacks[:], &deck, 0, -1)
-    if mt != -1 || mf != 1 || pass != 0 {
-        t.Errorf("Expected -1, 1, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('6', stacks[:], &deck, 0, 1)
-    if mt != 5 || mf != 1 || pass != 0 {
-        t.Errorf("Expected 5, 1, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('W', stacks[:], &deck, 0, -1)
-    if mt != -1 || mf != 7 || pass != 0 {
-        t.Errorf("Expected -1, 7, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('A', stacks[:], &deck, 0, 1)
-    if mt != 8 || mf != 1 || pass != 0 {
-        t.Errorf("Expected 8, 1, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
-    if mt != 10 || mf != 6 || pass != 0 {
-        t.Errorf("Expected 10, 6, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    stacks[6].Cards[0].Suit = "H"
-    mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
-    if mt != 9 || mf != 6 || pass != 0 {
-        t.Errorf("Expected 9, 6, 0 but was %d, %d, %d", mt, mf, pass)
-    }
-    stacks[6].Cards[0].Suit = "C"
-    mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
-    if mt != 11 || mf != 6 || pass != 0 {
-        t.Errorf("Expected 11, 6, 0 but was %d, %d, %d", mt, mf, pass)
-    }
+	stacks := make([]solitaire.Pile, 12)
+	deck := generic.NewDeck()
+	stacks[0].Cards = append(stacks[0].Cards, generic.NewCard("Q", "S", "black", 12, 16, true))
+	stacks[0].Ptype = 'T'
+	stacks[1].Cards = append(stacks[1].Cards, generic.NewCard("4", "S", "black", 4, 16, true))
+	stacks[1].Ptype = 'T'
+	stacks[2].Cards = append(stacks[2].Cards, generic.NewCard("T", "S", "black", 10, 16, true))
+	stacks[2].Ptype = 'T'
+	stacks[3].Cards = append(stacks[3].Cards, generic.NewCard("8", "S", "black", 8, 16, true))
+	stacks[3].Ptype = 'T'
+	stacks[4].Cards = append(stacks[4].Cards, generic.NewCard("9", "S", "black", 9, 16, true))
+	stacks[4].Ptype = 'T'
+	stacks[5].Cards = append(stacks[5].Cards, generic.NewCard("7", "S", "black", 7, 16, true))
+	stacks[5].Ptype = 'T'
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
+	stacks[6].Ptype = 'T'
+	mf, mt, pass := processKey('F', stacks[:], &deck, 0, -1)
+	if mt != -1 || mf != -1 || pass != 0 {
+		t.Errorf("Expected -1, -1, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('Q', stacks[:], &deck, 0, -1)
+	if mt != -1 || mf != -1 || pass != 3 {
+		t.Errorf("Expected -1, -1, 3 but was %d, %d, %d", mt, mf, pass)
+	}
+	deck.AllDealt = true
+	mf, mt, pass = processKey('D', stacks[:], &deck, 0, -1)
+	if mt != -1 || mf != -1 || pass != 1 {
+		t.Errorf("Expected -1, -1, 1 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('2', stacks[:], &deck, 0, -1)
+	if mt != -1 || mf != 1 || pass != 0 {
+		t.Errorf("Expected -1, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('6', stacks[:], &deck, 0, 1)
+	if mt != 5 || mf != 1 || pass != 0 {
+		t.Errorf("Expected 5, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('W', stacks[:], &deck, 0, -1)
+	if mt != -1 || mf != 7 || pass != 0 {
+		t.Errorf("Expected -1, 7, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 1)
+	if mt != 8 || mf != 1 || pass != 0 {
+		t.Errorf("Expected 8, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	if mt != 10 || mf != 6 || pass != 0 {
+		t.Errorf("Expected 10, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	stacks[6].Cards[0].Suit = "H"
+	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	if mt != 9 || mf != 6 || pass != 0 {
+		t.Errorf("Expected 9, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	}
+	stacks[6].Cards[0].Suit = "C"
+	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	if mt != 11 || mf != 6 || pass != 0 {
+		t.Errorf("Expected 11, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	}
 }

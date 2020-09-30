@@ -1,4 +1,4 @@
-// This version allows either a user or the computer to play the game klondike
+// This version allows a user to play the game klondike
 // It uses the ncurses tcell created by Garrett D'Amore which can be gotten by
 // go get -u github.com/gdamore/tcell
 //
@@ -8,10 +8,9 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
+	//	"log"
 	"os"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/gdamore/tcell"
@@ -30,10 +29,10 @@ type box struct {
 }
 
 // This variable sets up logging to the file game.out which will show each move and is automatically truncated for each run.
-var (
-	f, err = os.OpenFile("game.out", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
-	logger = log.New(f, "", log.LstdFlags)
-)
+//var (
+//	f, err = os.OpenFile("game.out", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+//	logger = log.New(f, "", log.LstdFlags)
+//)
 
 // Define the boxes for easier manipulation
 var wasteArea, ace1, ace2, ace3, ace4, playArea box
@@ -106,6 +105,7 @@ func drawScreen(s tcell.Screen, style tcell.Style) error {
 	center := w / 2
 	title := "Klondike"
 	putString(s, center-len(title)/2, 0, style, title)
+	var err error
 	wasteArea, err = makeBox(s, "Waste", 0, 2, 10, 4, style)
 	if err != nil {
 		return err
@@ -218,41 +218,6 @@ func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 	return pass
 }
 
-// CalcMove is the primary function for computer play allowing the computer to figure out the next move
-//
-// stacks: A slice containing all stacks of cards
-// deck: A pointer to the deck used in case we need to deal to the waste stack
-// pass: The pass count
-//
-// Returns: THe index of the stack to move from, the index of the stack to move to, and the pass count.
-// If the pass count goes to 3 it will return -1, -1, and 3 ending the game.
-func calcMove(stacks []solitaire.Pile, deck *generic.Deck, pass int) (int, int, int) {
-	done := false
-	index := 0
-	for !done {
-		for i, stack1 := range stacks {
-			for j, stack2 := range stacks {
-				if i == j {
-					continue
-				}
-				if j > 7 && stack1.Firstfaceup < len(stack1.Cards)-1 {
-					index = len(stack1.Cards) - 1
-				} else {
-					index = stack1.Firstfaceup
-				}
-				if stack1.CheckMove(&stack2, index) {
-					return i, j, pass
-				}
-			}
-		}
-		pass = dealToWaste(stacks[:], deck, pass)
-		if pass == 3 {
-			done = true
-		}
-	}
-	return -1, -1, pass
-}
-
 // processKey handles the processing of key strokes
 //
 // r:  The rune (keypress) we are to process.
@@ -272,17 +237,17 @@ func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movef
 	case 'D':
 		return -1, -1, dealToWaste(stacks[:], deck, pass)
 	case '1', '2', '3', '4', '5', '6', '7':
-		logger.Printf("in tableau")
+		//		logger.Printf("in tableau")
 		if movefrom == -1 {
 			return int(r-'0') - 1, -1, pass
 		} else {
 			return movefrom, int(r-'0') - 1, pass
 		}
 	case 'W':
-		logger.Printf("in waste")
+		//		logger.Printf("in waste")
 		return 7, -1, pass
 	case 'A':
-		logger.Printf("in aces")
+		//		logger.Printf("in aces")
 		if movefrom != -1 {
 			index := 0
 			if len(stacks[movefrom].Cards) != 0 {
@@ -332,28 +297,6 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 		}
 	}
 	w, h := s.Size()
-	ch := ' '
-	putString(s, 0, h-1, style, fmt.Sprintf(" Enter C for computer, U for user or Q to quit:"))
-	s.Show()
-	for ch != 'C' && ch != 'U' {
-		ev := s.PollEvent()
-		switch ev := ev.(type) {
-		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyCtrlL:
-				s.Sync()
-			case tcell.KeyRune:
-				switch unicode.ToUpper(ev.Rune()) {
-				case 'Q':
-					return 3
-				case 'C':
-					ch = 'C'
-				case 'U':
-					ch = 'U'
-				}
-			}
-		}
-	}
 	putString(s, 0, h-1, style, strings.Repeat(" ", w-1))
 	s.Show()
 	pass := 0
@@ -363,24 +306,18 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 		showStacks(s, stacks, style)
 		putString(s, 0, h-1, style, fmt.Sprintf("Pass# %02d, Waste# %02d, Deck# %02d", pass, len(stacks[7].Cards), len(deck.Cards)-deck.LastDealt))
 		s.Show()
-		switch ch {
-		case 'U':
-			ev := s.PollEvent()
-			switch ev := ev.(type) {
-			case *tcell.EventKey:
-				switch ev.Key() {
-				case tcell.KeyCtrlL:
-					s.Sync()
-				case tcell.KeyRune:
-					movefrom, moveto, pass = processKey(unicode.ToUpper(ev.Rune()), stacks[:], &deck, pass, movefrom)
-				}
+		ev := s.PollEvent()
+		switch ev := ev.(type) {
+		case *tcell.EventKey:
+			switch ev.Key() {
+			case tcell.KeyCtrlL:
+				s.Sync()
+			case tcell.KeyRune:
+				movefrom, moveto, pass = processKey(unicode.ToUpper(ev.Rune()), stacks[:], &deck, pass, movefrom)
 			}
-		case 'C':
-			time.Sleep(time.Second) // give time to see what is being done
-			movefrom, moveto, pass = calcMove(stacks[:], &deck, pass)
 		}
 		if movefrom > -1 && moveto > -1 {
-			logger.Printf("from: %d to: %d faceup %d cards, %d lento %d", movefrom, moveto, stacks[movefrom].Firstfaceup, len(stacks[movefrom].Cards)-1, len(stacks[moveto].Cards))
+			//			logger.Printf("from: %d to: %d faceup %d cards, %d lento %d", movefrom, moveto, stacks[movefrom].Firstfaceup, len(stacks[movefrom].Cards)-1, len(stacks[moveto].Cards))
 			if moveto != movefrom {
 				var index int
 				if moveto > 7 && stacks[movefrom].Firstfaceup < len(stacks[movefrom].Cards)-1 {
@@ -390,7 +327,7 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 				}
 				if stacks[movefrom].CheckMove(&stacks[moveto], index) {
 					stacks[movefrom].DoMove(&stacks[moveto], index)
-					logger.Printf("Moved from: %+v, to: %+v", stacks[movefrom], stacks[moveto])
+					//logger.Printf("Moved from: %+v, to: %+v", stacks[movefrom], stacks[moveto])
 				}
 			}
 			movefrom = -1
@@ -408,10 +345,10 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 }
 
 func main() {
-	if err != nil {
-		log.Fatal("Error opening error log.\n")
-	}
-	defer f.Close()
+	//if err != nil {
+	//		log.Fatal("Error opening error log.\n")
+	//}
+	//defer f.Close()
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 	s, e := tcell.NewScreen()
 	if e != nil {
