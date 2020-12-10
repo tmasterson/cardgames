@@ -252,6 +252,8 @@ func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movef
 			index := 0
 			if len(stacks[movefrom].Cards) != 0 {
 				index = len(stacks[movefrom].Cards) - 1
+			} else {
+				return -1, -1, pass
 			}
 			switch stacks[movefrom].Cards[index].Suit {
 			case "S":
