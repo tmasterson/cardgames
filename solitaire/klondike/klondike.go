@@ -162,7 +162,7 @@ func showStacks(s tcell.Screen, stacks []solitaire.Pile, style tcell.Style) {
 					k++
 				}
 			}
-			for playArea.topY+k < playArea.botY-2 {
+			for playArea.topY+k < playArea.botY-1 {
 				putString(s, playArea.leftX+i*3+2, playArea.topY+k, style, "  ")
 				k++
 			}
