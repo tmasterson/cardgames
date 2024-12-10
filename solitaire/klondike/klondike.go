@@ -61,7 +61,7 @@ func makeBox(s tcell.Screen, title string, leftX, topY, rightX, botY int, style 
 	center := (rightX - leftX) / 2
 	var b box
 	if len(title) > rightX-leftX-2 {
-		return b, errors.New(fmt.Sprintf("title length %d nusr not exceed right-left-2 %d", len(title), rightX-leftX-2))
+		return b, fmt.Errorf("title length %d must not exceed right-left-2 %d", len(title), rightX-leftX-2)
 	}
 	b.title = title
 	b.leftX = leftX
@@ -193,14 +193,14 @@ func showStacks(s tcell.Screen, stacks []solitaire.Pile, style tcell.Style) {
 }
 
 // DealToWaste deals cards from the deck to the waste stack.
-// If all cards have been dealt from the deck it turns the wast stack into the deck
+// If all cards have been dealt from the deck it turns the waste stack into the deck
 // and increments the pass count.
 //
 // stacks: A slice containing all the stacks (could probably be just the wast stack)
-// deck: Apointer to the deck
-// pass: THe pass count
+// deck: A pointer to the deck
+// pass: The pass count
 //
-// returns: The pas count
+// returns: The pass count
 func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 	if len(stacks[7].Cards) > 0 {
 		stacks[7].Cards[stacks[7].Firstfaceup].Turn()
@@ -223,10 +223,10 @@ func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 // r:  The rune (keypress) we are to process.
 // stacks:  The card stacks.  Passed primarily to handle dealing to the waste stack
 // deck:  The deck of cards.  Passed to handle dealing to the waste pile.
-// pass:  Number of passes so far reset by the deal to wast function.
+// pass:  Number of passes so far reset by the deal to waste function.
 // movefrom:  The stack to move cards from on initial call it is -1 and is passed again to set the move to stack.
 //
-// returns:  The number of the stack tto move cards from,
+// returns:  The number of the stack to move cards from,
 //           The number of the stack to move cards to,
 //           the number of passes made through the deck.
 //
@@ -240,9 +240,8 @@ func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movef
 		//		logger.Printf("in tableau")
 		if movefrom == -1 {
 			return int(r-'0') - 1, -1, pass
-		} else {
-			return movefrom, int(r-'0') - 1, pass
 		}
+        return movefrom, int(r-'0') - 1, pass
 	case 'W':
 		//		logger.Printf("in waste")
 		return 7, -1, pass
@@ -270,7 +269,7 @@ func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movef
 	return -1, -1, pass
 }
 
-// PlayGame if the main function that handles all aspects of the game.
+// PlayGame is the main function that handles all aspects of the game.
 //
 // s: Screnn variable.
 // style: The style for the screen.
@@ -379,3 +378,4 @@ func main() {
 		fmt.Println("You either quit or lost. Better luck next time.")
 	}
 }
+

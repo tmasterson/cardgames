@@ -1,19 +1,19 @@
-// This package is a set of types and functions useful for all solitaire games.
+// Package solitaire is a set of types and functions useful for all solitaire games.
 // A possible exception is something like spider.
 package solitaire
 
 import (
-	"sync"
+//	"sync"
 
 	"github.com/tmasterson/cardgames/generic"
 )
 
-// Adder is an iterface primarily designed to allow for isolation while testing
+// Adder is an interface primarily designed to allow for isolation while testing
 type Adder interface {
 	Add(c []generic.Card)
 }
 
-// Reducer is an interface desgnied primarl=ily for isolation during testing
+// Reducer is an interface designied primarily for isolation during testing
 type Reducer interface {
 	Reduce(n int)
 }
@@ -34,7 +34,7 @@ type Pile struct {
 	Cards       []generic.Card
 	Firstfaceup int
 	Ptype       rune
-	mux         sync.Mutex // set up locking for safety
+//	mux         sync.Mutex // set up locking for safety
 }
 
 // Add adds a card or cards to a pile
@@ -61,15 +61,15 @@ func (p *Pile) ChangeFirstFaceUp() {
 
 // DoMove  Does the actual moving of cards from one Pile to another.
 func (p *Pile) DoMove(to *Pile, index int) {
-	p.mux.Lock() // lock the piles for safety
-	to.mux.Lock()
+//	p.mux.Lock() // lock the piles for safety
+//	to.mux.Lock()
 	to.Add(p.Cards[index:])
 	p.Reduce(index)
     if index <= p.Firstfaceup {
         p.ChangeFirstFaceUp()
     }
-	to.mux.Unlock() // unlock the piles
-	p.mux.Unlock()
+//	to.mux.Unlock() // unlock the piles
+//	p.mux.Unlock()
 }
 
 // CheckMove  Checks to make sure that a move is valid
@@ -80,7 +80,7 @@ func (p *Pile) CheckMove(to *Pile, index int) bool {
 	if len(p.Cards) == 0 { // Can not move empty pile
 		return false
 	}
-	if p.Ptype == 'A' { // can't move form aces
+	if p.Ptype == 'A' { // can't move from aces
 		return false
 	}
 	card1 := p.Cards[index]
