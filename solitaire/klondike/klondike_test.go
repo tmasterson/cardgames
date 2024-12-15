@@ -135,46 +135,46 @@ func TestProcessKey(t *testing.T) {
 	stacks[5].Ptype = 'T'
 	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
 	stacks[6].Ptype = 'T'
-	mf, mt, pass := processKey('F', stacks[:], &deck, 0, -1)
+	mf, mt, pass := processKey(tcell.NewEventKey(70, 'F', tcell.ModNone), stacks[:], &deck, 0, -1)
 	if mt != -1 || mf != -1 || pass != 0 {
 		t.Errorf("Expected -1, -1, 0 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('Q', stacks[:], &deck, 0, -1)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'Q', tcell.ModNone), stacks[:], &deck, 0, -1)
 	if mt != -1 || mf != -1 || pass != 3 {
 		t.Errorf("Expected -1, -1, 3 but was %d, %d, %d", mt, mf, pass)
 	}
 	deck.AllDealt = true
-	mf, mt, pass = processKey('D', stacks[:], &deck, 0, -1)
+    mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'D', tcell.ModNone), stacks[:], &deck, 0, -1)
 	if mt != -1 || mf != -1 || pass != 1 {
 		t.Errorf("Expected -1, -1, 1 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('2', stacks[:], &deck, 0, -1)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, '2', tcell.ModNone), stacks[:], &deck, 0, -1)
 	if mt != -1 || mf != 1 || pass != 0 {
 		t.Errorf("Expected -1, 1, 0 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('6', stacks[:], &deck, 0, 1)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, '6', tcell.ModNone), stacks[:], &deck, 0, 1)
 	if mt != 5 || mf != 1 || pass != 0 {
 		t.Errorf("Expected 5, 1, 0 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('W', stacks[:], &deck, 0, -1)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'W', tcell.ModNone), stacks[:], &deck, 0, -1)
 	if mt != -1 || mf != 7 || pass != 0 {
 		t.Errorf("Expected -1, 7, 0 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 1)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 1)
 	if mt != 8 || mf != 1 || pass != 0 {
 		t.Errorf("Expected 8, 1, 0 but was %d, %d, %d", mt, mf, pass)
 	}
-	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
 	if mt != 10 || mf != 6 || pass != 0 {
 		t.Errorf("Expected 10, 6, 0 but was %d, %d, %d", mt, mf, pass)
 	}
 	stacks[6].Cards[0].Suit = "H"
-	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
 	if mt != 9 || mf != 6 || pass != 0 {
 		t.Errorf("Expected 9, 6, 0 but was %d, %d, %d", mt, mf, pass)
 	}
 	stacks[6].Cards[0].Suit = "C"
-	mf, mt, pass = processKey('A', stacks[:], &deck, 0, 6)
+	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
 	if mt != 11 || mf != 6 || pass != 0 {
 		t.Errorf("Expected 11, 6, 0 but was %d, %d, %d", mt, mf, pass)
 	}

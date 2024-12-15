@@ -230,42 +230,42 @@ func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 //           The number of the stack to move cards to,
 //           the number of passes made through the deck.
 //
-func processKey(r rune, stacks []solitaire.Pile, deck *generic.Deck, pass, movefrom int) (int, int, int) {
-	switch r {
-	case 'Q':
-		return -1, -1, 3
-	case 'D':
-		return -1, -1, dealToWaste(stacks[:], deck, pass)
-	case '1', '2', '3', '4', '5', '6', '7':
-		//		logger.Printf("in tableau")
-		if movefrom == -1 {
-			return int(r-'0') - 1, -1, pass
-		}
-        return movefrom, int(r-'0') - 1, pass
-	case 'W':
-		//		logger.Printf("in waste")
-		return 7, -1, pass
-	case 'A':
-		//		logger.Printf("in aces")
-		if movefrom != -1 {
-			index := 0
+func processKey(ev *tcell.EventKey, stacks []solitaire.Pile, deck *generic.Deck, pass, movefrom int) (int, int, int) {
+    switch ev.Key() {
+    case tcell.KeyEnter:
+        if movefrom != -1 {
 			if len(stacks[movefrom].Cards) != 0 {
-				index = len(stacks[movefrom].Cards) - 1
+                switch stacks[movefrom].Cards[len(stacks[movefrom].Cards) - 1].Suit {
+                case "S":
+                    return movefrom, 8, pass
+                case "H":
+                    return movefrom, 9, pass
+                case "D":
+                    return movefrom, 10, pass
+                case "C":
+                    return movefrom, 11, pass
+                }
 			} else {
 				return -1, -1, pass
 			}
-			switch stacks[movefrom].Cards[index].Suit {
-			case "S":
-				return movefrom, 8, pass
-			case "H":
-				return movefrom, 9, pass
-			case "D":
-				return movefrom, 10, pass
-			case "C":
-				return movefrom, 11, pass
-			}
 		}
-	}
+    case tcell.KeyRune:
+        switch unicode.ToUpper(ev.Rune()) {
+        case 'Q':
+            return -1, -1, 3
+        case 'D':
+            return -1, -1, dealToWaste(stacks[:], deck, pass)
+        case '1', '2', '3', '4', '5', '6', '7':
+            //		logger.Printf("in tableau")
+            if movefrom == -1 {
+                return int(unicode.ToUpper(ev.Rune())-'0') - 1, -1, pass
+            }
+            return movefrom, int(unicode.ToUpper(ev.Rune())-'0') - 1, pass
+        case 'W':
+            //		logger.Printf("in waste")
+            return 7, -1, pass
+        }
+    }
 	return -1, -1, pass
 }
 
@@ -310,11 +310,11 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyCtrlL:
-				s.Sync()
-			case tcell.KeyRune:
-				movefrom, moveto, pass = processKey(unicode.ToUpper(ev.Rune()), stacks[:], &deck, pass, movefrom)
+            key := ev.Key()
+			if key == tcell.KeyCtrlL {
+                s.Sync()
+            } else {
+				movefrom, moveto, pass = processKey(ev, stacks[:], &deck, pass, movefrom)
 			}
 		}
 		if movefrom > -1 && moveto > -1 {
