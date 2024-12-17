@@ -253,14 +253,14 @@ func processKey(ev *tcell.EventKey, stacks []solitaire.Pile, deck *generic.Deck,
         switch unicode.ToUpper(ev.Rune()) {
         case 'Q':
             return -1, -1, 3
-        case 'D':
+        case ' ':
             return -1, -1, dealToWaste(stacks[:], deck, pass)
-        case '1', '2', '3', '4', '5', '6', '7':
+        case 'A', 'B', 'C', 'D', 'E', 'F', 'G':
             //		logger.Printf("in tableau")
             if movefrom == -1 {
-                return int(unicode.ToUpper(ev.Rune())-'0') - 1, -1, pass
+                return int(unicode.ToUpper(ev.Rune())-'@') - 1, -1, pass
             }
-            return movefrom, int(unicode.ToUpper(ev.Rune())-'0') - 1, pass
+            return movefrom, int(unicode.ToUpper(ev.Rune())-'@') - 1, pass
         case 'W':
             //		logger.Printf("in waste")
             return 7, -1, pass
