@@ -136,13 +136,13 @@ func drawScreen(s tcell.Screen, style tcell.Style) error {
 	y++
 	putString(s, x, y, style, "All moves are a two character instruction.")
 	y++
-	putString(s, x, y, style, "17 will move from stack 1 to stack 7.")
+	putString(s, x, y, style, "AG will move from stack 1 to stack 7.")
 	y++
-	putString(s, x, y, style, "w1 will move from waste to stack 1.")
+	putString(s, x, y, style, "wA will move from waste to stack 1.")
 	y++
-	putString(s, x, y, style, "wa will move from waste to an ace stack.")
+	putString(s, x, y, style, "w<Enter will move from waste to an ace stack.")
 	y++
-	putString(s, x, y, style, "1a will move from stack 1 to an ace stack.")
+	putString(s, x, y, style, "A<enter will move from stack 1 to an ace stack.")
 	s.Show()
 	return nil
 }
