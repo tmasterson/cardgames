@@ -8,7 +8,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	//	"log"
+	//"log"
 	"os"
 	"strings"
 	"unicode"
@@ -26,6 +26,18 @@ type box struct {
 	leftX, rightX, topY, botY int
 	cardArea                  int
 	style                     tcell.Style
+}
+
+// Move is a structure to track moves.
+// from:  Stack to mover cards from
+// to:  Stack to move cards to
+// pass:  Number of passes through the waste stack
+// howmany:  Number of cards to move
+type move struct {
+    from int
+    to int
+    pass int
+    howmany int
 }
 
 // This variable sets up logging to the file game.out which will show each move and is automatically truncated for each run.
@@ -220,53 +232,115 @@ func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 
 // processKey handles the processing of key strokes
 //
-// r:  The rune (keypress) we are to process.
+// ev:  The event that that contains the key.
 // stacks:  The card stacks.  Passed primarily to handle dealing to the waste stack
 // deck:  The deck of cards.  Passed to handle dealing to the waste pile.
 // pass:  Number of passes so far reset by the deal to waste function.
 // movefrom:  The stack to move cards from on initial call it is -1 and is passed again to set the move to stack.
 //
-// returns:  The number of the stack to move cards from,
-//           The number of the stack to move cards to,
-//           the number of passes made through the deck.
+// returns: a filled move structure 
 //
-func processKey(ev *tcell.EventKey, stacks []solitaire.Pile, deck *generic.Deck, pass, movefrom int) (int, int, int) {
+func processKey(ev *tcell.EventKey, stacks []solitaire.Pile, deck *generic.Deck, cm move) move {
+    var ret move
     switch ev.Key() {
     case tcell.KeyEnter:
-        if movefrom != -1 {
-			if len(stacks[movefrom].Cards) != 0 {
-                switch stacks[movefrom].Cards[len(stacks[movefrom].Cards) - 1].Suit {
+        if cm.from != -1 {
+			if len(stacks[cm.from].Cards) != 0 {
+                switch stacks[cm.from].Cards[len(stacks[cm.from].Cards) - 1].Suit {
                 case "S":
-                    return movefrom, 8, pass
+                    ret.from = cm.from
+                    ret.to = 8
+                    ret.pass = cm.pass
+                    ret.howmany = 1
                 case "H":
-                    return movefrom, 9, pass
+                    ret.from = cm.from
+                    ret.to = 9
+                    ret.pass = cm.pass
+                    ret.howmany = 1
                 case "D":
-                    return movefrom, 10, pass
+                    ret.from = cm.from
+                    ret.to = 10
+                    ret.pass = cm.pass
+                    ret.howmany = 1
                 case "C":
-                    return movefrom, 11, pass
+                    ret.from = cm.from
+                    ret.to = 11
+                    ret.pass = cm.pass
+                    ret.howmany = 1
                 }
 			} else {
-				return -1, -1, pass
+                ret.from = -1
+                ret.to = -1
+                ret.pass = cm.pass
 			}
 		}
     case tcell.KeyRune:
         switch unicode.ToUpper(ev.Rune()) {
         case 'Q':
-            return -1, -1, 3
+            ret.from = -1
+            ret.to = -1
+            ret.pass = 3
         case ' ':
-            return -1, -1, dealToWaste(stacks[:], deck, pass)
+            ret.from = -1
+            ret.to = -1
+            ret.pass = dealToWaste(stacks[:], deck, cm.pass)
         case 'A', 'B', 'C', 'D', 'E', 'F', 'G':
             //		logger.Printf("in tableau")
-            if movefrom == -1 {
-                return int(unicode.ToUpper(ev.Rune())-'@') - 1, -1, pass
+            if cm.from == -1 {
+                ret.from = int(unicode.ToUpper(ev.Rune())-'A')
+                ret.to = -1
+                ret.pass = cm.pass
+                ret.howmany = cm.howmany
+            } else {
+                ret.from = cm.from
+                ret.to = int(unicode.ToUpper(ev.Rune())-'A')
+                ret.pass = cm.pass
+                ret.howmany = cm.howmany
             }
-            return movefrom, int(unicode.ToUpper(ev.Rune())-'@') - 1, pass
         case 'W':
             //		logger.Printf("in waste")
-            return 7, -1, pass
+            ret.from = 7
+            ret.to = -1
+            ret.pass = cm.pass
+        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+            ret.from = -1
+            ret.to = -1
+            ret.pass = cm.pass
+            ret.howmany = cm.howmany*10+int(ev.Rune()-'0')
+            if ret.howmany > 12 {
+                ret.howmany = 0
+            }
+        default:
+            ret.from = -1
+            ret.to = -1
+            ret.pass = cm.pass
         }
     }
-	return -1, -1, pass
+	return ret
+}
+
+func moveCards(stacks []solitaire.Pile, cm move) move {
+    //logger.Printf("cm = %v", cm)
+    if cm.from > -1 && cm.to > -1 {
+        if cm.to != cm.from {
+            if cm.to > 7 && stacks[cm.from].Firstfaceup < len(stacks[cm.from].Cards)-1 {
+                cm.howmany = len(stacks[cm.from].Cards) - 1
+            } else {
+                if cm.howmany < 1 {
+                    cm.howmany = stacks[cm.from].Firstfaceup
+                } else {
+                    cm.howmany = len(stacks[cm.from].Cards) - cm.howmany
+                }
+            }
+            if stacks[cm.from].CheckMove(&stacks[cm.to], cm.howmany) {
+                stacks[cm.from].DoMove(&stacks[cm.to], cm.howmany)
+            }
+        }
+        cm.from = -1
+        cm.to = -1
+        cm.howmany = 0
+    }
+    return cm
 }
 
 // PlayGame is the main function that handles all aspects of the game.
@@ -300,39 +374,20 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 	w, h := s.Size()
 	putString(s, 0, h-1, style, strings.Repeat(" ", w-1))
 	s.Show()
-	pass := 0
-	movefrom := -1
-	moveto := -1
-	for pass < 3 {
+    cardmove := move{from: -1, to: -1, pass: 0, howmany: 0}
+	for cardmove.pass < 3 {
 		showStacks(s, stacks, style)
-		putString(s, 0, h-1, style, fmt.Sprintf("Pass# %02d, Waste# %02d, Deck# %02d", pass, len(stacks[7].Cards), len(deck.Cards)-deck.LastDealt))
+		putString(s, 0, h-1, style, fmt.Sprintf("Pass# %02d, Waste# %02d, Deck# %02d", cardmove.pass, len(stacks[7].Cards), len(deck.Cards)-deck.LastDealt))
 		s.Show()
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
 		case *tcell.EventKey:
-            key := ev.Key()
-			if key == tcell.KeyCtrlL {
+			if ev.Key() == tcell.KeyCtrlL {
                 s.Sync()
             } else {
-				movefrom, moveto, pass = processKey(ev, stacks[:], &deck, pass, movefrom)
+				cardmove = moveCards(stacks[:], processKey(ev, stacks[:], &deck, cardmove))
+                //logger.Printf("cardmove = %v", cardmove)
 			}
-		}
-		if movefrom > -1 && moveto > -1 {
-			//			logger.Printf("from: %d to: %d faceup %d cards, %d lento %d", movefrom, moveto, stacks[movefrom].Firstfaceup, len(stacks[movefrom].Cards)-1, len(stacks[moveto].Cards))
-			if moveto != movefrom {
-				var index int
-				if moveto > 7 && stacks[movefrom].Firstfaceup < len(stacks[movefrom].Cards)-1 {
-					index = len(stacks[movefrom].Cards) - 1
-				} else {
-					index = stacks[movefrom].Firstfaceup
-				}
-				if stacks[movefrom].CheckMove(&stacks[moveto], index) {
-					stacks[movefrom].DoMove(&stacks[moveto], index)
-					//logger.Printf("Moved from: %+v, to: %+v", stacks[movefrom], stacks[moveto])
-				}
-			}
-			movefrom = -1
-			moveto = -1
 		}
 		total := 0
 		for i := 8; i < 12; i++ { // total the number of cards in aces
@@ -342,7 +397,7 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 			return -1
 		}
 	}
-	return pass
+	return cardmove.pass
 }
 
 func main() {

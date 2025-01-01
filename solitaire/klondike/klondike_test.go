@@ -135,47 +135,125 @@ func TestProcessKey(t *testing.T) {
 	stacks[5].Ptype = 'T'
 	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
 	stacks[6].Ptype = 'T'
-	mf, mt, pass := processKey(tcell.NewEventKey(tcell.KeyRune, 'O', tcell.ModNone), stacks[:], &deck, 0, -1)
-	if mt != -1 || mf != -1 || pass != 0 {
-		t.Errorf("Expected -1, -1, 0 but was %d, %d, %d", mt, mf, pass)
+	cm := move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, 'O', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != -1 || cm.pass != 0 {
+		t.Errorf("Expected -1, -1, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'Q', tcell.ModNone), stacks[:], &deck, 0, -1)
-	if mt != -1 || mf != -1 || pass != 3 {
-		t.Errorf("Expected -1, -1, 3 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, 'Q', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != -1 || cm.pass != 3 {
+		t.Errorf("Expected -1, -1, 3 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
 	deck.AllDealt = true
-    mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, ' ', tcell.ModNone), stacks[:], &deck, 0, -1)
-	if mt != -1 || mf != -1 || pass != 1 {
-		t.Errorf("Expected -1, -1, 1 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, ' ', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != -1 || cm.pass != 1 {
+		t.Errorf("Expected -1, -1, 1 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'B', tcell.ModNone), stacks[:], &deck, 0, -1)
-	if mt != -1 || mf != 1 || pass != 0 {
-		t.Errorf("Expected -1, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, 'B', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != 1 || cm.pass != 0 {
+		t.Errorf("Expected -1, 1, 0 but was %v", cm)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'F', tcell.ModNone), stacks[:], &deck, 0, 1)
-	if mt != 5 || mf != 1 || pass != 0 {
-		t.Errorf("Expected 5, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: 1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, 'F', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != 5 || cm.from != 1 || cm.pass != 0 {
+		t.Errorf("Expected 5, 1, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyRune, 'W', tcell.ModNone), stacks[:], &deck, 0, -1)
-	if mt != -1 || mf != 7 || pass != 0 {
-		t.Errorf("Expected -1, 7, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, '1', tcell.ModNone), stacks[:], &deck, cm)
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, '2', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != -1 || cm.pass != 0 || cm.howmany != 12 {
+		t.Errorf("Expected -1, -1, 0, 12 but was %v", cm)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 1)
-	if mt != 8 || mf != 1 || pass != 0 {
-		t.Errorf("Expected 8, 1, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyRune, 'W', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != -1 || cm.from != 7 || cm.pass != 0 {
+		t.Errorf("Expected -1, 7, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
-	if mt != 10 || mf != 6 || pass != 0 {
-		t.Errorf("Expected 10, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = move{from: 1, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != 8 || cm.from != 1 || cm.pass != 0 {
+		t.Errorf("Expected 8, 1, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
+	}
+	cm = move{from: 6, to: -1, pass: 0, howmany: 0}
+	cm = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != 10 || cm.from != 6 || cm.pass != 0 {
+		t.Errorf("Expected 10, 6, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
 	stacks[6].Cards[0].Suit = "H"
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
-	if mt != 9 || mf != 6 || pass != 0 {
-		t.Errorf("Expected 9, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != 9 || cm.from != 6 || cm.pass != 0 {
+		t.Errorf("Expected 9, 6, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
 	}
 	stacks[6].Cards[0].Suit = "C"
-	mf, mt, pass = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, 0, 6)
-	if mt != 11 || mf != 6 || pass != 0 {
-		t.Errorf("Expected 11, 6, 0 but was %d, %d, %d", mt, mf, pass)
+	cm = processKey(tcell.NewEventKey(tcell.KeyEnter, ' ', tcell.ModNone), stacks[:], &deck, cm)
+	if cm.to != 11 || cm.from != 6 || cm.pass != 0 {
+		t.Errorf("Expected 11, 6, 0 but was %d, %d, %d", cm.to, cm.from, cm.pass)
+	}
+}
+
+func TestMoveCards(t *testing.T) {
+	var cm2 move
+	stacks := make([]solitaire.Pile, 12)
+	stacks[0].Cards = append(stacks[0].Cards, generic.NewCard("Q", "S", "black", 12, 16, true))
+	stacks[0].Ptype = 'T'
+	stacks[1].Cards = append(stacks[1].Cards, generic.NewCard("4", "S", "black", 4, 16, true))
+	stacks[1].Ptype = 'T'
+	stacks[2].Cards = append(stacks[2].Cards, generic.NewCard("T", "S", "black", 10, 16, true))
+	stacks[2].Ptype = 'T'
+	stacks[3].Cards = append(stacks[3].Cards, generic.NewCard("8", "S", "black", 8, 16, true))
+	stacks[3].Ptype = 'T'
+	stacks[4].Cards = append(stacks[4].Cards, generic.NewCard("9", "S", "black", 9, 16, true))
+	stacks[4].Ptype = 'T'
+	stacks[5].Cards = append(stacks[5].Cards, generic.NewCard("7", "S", "black", 7, 16, true))
+	stacks[5].Ptype = 'T'
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("3", "D", "red", 3, 4, true))
+	stacks[6].Ptype = 'T'
+	cm := move{from: -1, to: -1, pass: 0, howmany: 0}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2 != cm {
+		t.Errorf("Expected %v but was %v", cm, cm2)
+	}
+	cm = move{from: 1, to: -1, pass: 0, howmany: 0}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2 != cm {
+		t.Errorf("Expected %v but was %v", cm, cm2)
+	}
+	cm = move{from: 1, to: 1, pass: 0, howmany: 0}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2.from != -1 || cm2.to != -1 {
+		t.Errorf("Expected -1, -1 but was %d, %d", cm2.from, cm2.to)
+	}
+	cm = move{from: 4, to: 5, pass: 0, howmany: 0}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2.from != -1 || cm2.to != -1 || len(stacks[4].Cards) != 1 || len(stacks[5].Cards) != 1 {
+		t.Errorf("Expected -1, -1, 1, 1 but was %d, %d, %d, %d", cm2.from, cm2.to, len(stacks[4].Cards), len(stacks[5].Cards))
+	}
+	cm = move{from: 6, to: 1, pass: 0, howmany: 0}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2.from != -1 || cm2.to != -1 || len(stacks[1].Cards) != 2 || len(stacks[6].Cards) != 0 {
+		t.Errorf("Expected -1, -1, 2, 0 but was %d, %d, %d, %d", cm2.from, cm2.to, len(stacks[1].Cards), len(stacks[6].Cards))
+	}
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("J", "D", "red", 11, 4, false))
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("9", "C", "black", 9, 2, false))
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("7", "C", "black", 7, 2, true))
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("6", "D", "red", 6, 4, true))
+	stacks[6].Cards = append(stacks[6].Cards, generic.NewCard("5", "S", "black", 5, 16, true))
+	cm = move{from: 6, to: 5, pass: 0, howmany: 2}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2.from != -1 || cm2.to != -1 || len(stacks[5].Cards) != 3 || len(stacks[6].Cards) != 3 {
+		t.Errorf("Expected -1, -1, 3, 3 but was %d, %d, %d, %d", cm2.from, cm2.to, len(stacks[5].Cards), len(stacks[6].Cards))
+	}
+    if !stacks[6].Cards[len(stacks[6].Cards)-1].Faceup {
+        t.Errorf("expected last card to be faceup but it was not")
+    }
+	stacks[4].Cards = append(stacks[4].Cards, generic.NewCard("8", "D", "red", 8, 4, true))
+    stacks[4].Firstfaceup = len(stacks[4].Cards)-1
+    stacks[6].Firstfaceup = len(stacks[6].Cards)-1
+	cm = move{from: 6, to: 4, pass: 0, howmany: 1}
+	cm2 = moveCards(stacks[:], cm)
+	if cm2.from != -1 || cm2.to != -1 || len(stacks[4].Cards) != 3 || len(stacks[6].Cards) != 2 {
+		t.Errorf("Expected -1, -1, 3, 2 but was %d, %d, %d, %d", cm2.from, cm2.to, len(stacks[4].Cards), len(stacks[6].Cards))
 	}
 }
