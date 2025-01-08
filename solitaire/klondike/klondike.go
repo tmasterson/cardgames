@@ -7,6 +7,7 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	//"log"
 	"os"
@@ -48,6 +49,7 @@ type move struct {
 
 // Define the boxes for easier manipulation
 var wasteArea, ace1, ace2, ace3, ace4, playArea box
+var vcount int
 
 // Print a string in a given area of the screen in a given style
 // s: The screen variable
@@ -115,7 +117,7 @@ func drawScreen(s tcell.Screen, style tcell.Style) error {
 		return errors.New("Screen size must be at least 80 by 25")
 	}
 	center := w / 2
-	title := "Klondike"
+	title := fmt.Sprintf("Klondike %d variant", vcount)
 	putString(s, center-len(title)/2, 0, style, title)
 	var err error
 	wasteArea, err = makeBox(s, "Waste", 0, 2, 10, 4, style)
@@ -225,7 +227,7 @@ func dealToWaste(stacks []solitaire.Pile, deck *generic.Deck, pass int) int {
 		stacks[7].Cards = stacks[7].Cards[:0]
 		pass++
 	}
-	stacks[7].Cards = append(stacks[7].Cards, deck.Deal(3, 1)...)
+	stacks[7].Cards = append(stacks[7].Cards, deck.Deal(vcount, 1)...)
 	stacks[7].Firstfaceup = len(stacks[7].Cards) - 1
 	return pass
 }
@@ -375,7 +377,7 @@ func playGame(s tcell.Screen, style tcell.Style) int {
 	putString(s, 0, h-1, style, strings.Repeat(" ", w-1))
 	s.Show()
 	cardmove := move{from: -1, to: -1, pass: 0, howmany: 0}
-	for cardmove.pass < 3 {
+	for cardmove.pass < vcount {
 		showStacks(s, stacks, style)
 		putString(s, 0, h-1, style, fmt.Sprintf("Pass# %02d, Waste# %02d, Deck# %02d", cardmove.pass, len(stacks[7].Cards), len(deck.Cards)-deck.LastDealt))
 		s.Show()
@@ -405,6 +407,13 @@ func main() {
 	//		log.Fatal("Error opening error log.\n")
 	//}
 	//defer f.Close()
+	numptr := flag.Int("v", 3, "Variant of klondike 1 or 3")
+	flag.Parse()
+	vcount = *numptr
+	if vcount != 1 && vcount != 3 {
+		fmt.Fprintf(os.Stderr, "Variant must be 1 or 3\n")
+		os.Exit(1)
+	}
 	tcell.SetEncodingFallback(tcell.EncodingFallbackASCII)
 	s, e := tcell.NewScreen()
 	if e != nil {
